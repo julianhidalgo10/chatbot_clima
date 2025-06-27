@@ -88,6 +88,7 @@ Frontend (Vite + Vue 3):
 
 ## Estructura resumida del proyecto
 
+```plaintext
 ├── app/
 │   ├── Http/Controllers/ChatController.php
 │   ├── Models/Conversation.php
@@ -99,6 +100,7 @@ Frontend (Vite + Vue 3):
 ├── routes/
 │   └── api.php
 └── .env
+```
 
 ---
 
@@ -111,6 +113,7 @@ Si OpenAI no responde, revisar la conexión o firewall. El error `cURL error 6` 
 ## Autor
 
 Julián Hidalgo
+
 Ingeniero Electrónico | Entusiasta de la IA y desarrollo web fullstack.
 
 ---
