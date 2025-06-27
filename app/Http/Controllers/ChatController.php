@@ -49,10 +49,11 @@ class ChatController extends Controller
     }
 
     private function generateSmartResponse($question)
-    {
+{
+    try {
         $prompt = <<<EOT
-Eres un asistente meteorológico experto que responde en español con información clara y útil. 
-Si la pregunta del usuario menciona una ciudad o clima, responde usando datos de la API de Open-Meteo (ej. temperatura y estado del clima).
+Eres un asistente meteorológico experto que responde en español con información clara y útil.
+Si la pregunta del usuario menciona una ciudad o clima, responde usando datos de la API de Open-Meteo.
 Si no tienes suficiente información para responder, indícalo educadamente.
 
 Pregunta: "{$question}"
@@ -72,9 +73,19 @@ EOT;
         ]);
 
         if ($response->failed()) {
-            return "La IA no pudo generar una respuesta en este momento.";
+            \Log::error('Error al consultar OpenAI', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return "Ocurrió un problema al consultar a la IA (OpenAI).";
         }
 
         return $response->json()['choices'][0]['message']['content'] ?? "No se pudo obtener respuesta de la IA.";
+    } catch (\Exception $e) {
+        \Log::error('Excepción al consultar OpenAI', [
+            'message' => $e->getMessage(),
+        ]);
+        return "Error inesperado al generar respuesta: " . $e->getMessage();
     }
 }
