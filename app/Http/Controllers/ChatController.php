@@ -25,13 +25,13 @@ class ChatController extends Controller
             : Conversation::create(['user_identifier' => 'anonymous']);
 
         // Guardar mensaje del usuario
-        $userMessage = Message::create([
+        Message::create([
             'conversation_id' => $conversation->id,
             'sender' => 'user',
             'content' => $question,
         ]);
 
-        // Generar respuesta con IA (la veremos en el siguiente paso)
+        // Generar respuesta con IA (OpenAI)
         $response = $this->generateSmartResponse($question);
 
         // Guardar respuesta del bot
@@ -50,7 +50,31 @@ class ChatController extends Controller
 
     private function generateSmartResponse($question)
     {
-        // Aquí va la lógica real con OpenAI y Open-Meteo en próximos commits.
-        return "Respuesta simulada: aún sin integrar OpenAI";
+        $prompt = <<<EOT
+Eres un asistente meteorológico experto que responde en español con información clara y útil. 
+Si la pregunta del usuario menciona una ciudad o clima, responde usando datos de la API de Open-Meteo (ej. temperatura y estado del clima).
+Si no tienes suficiente información para responder, indícalo educadamente.
+
+Pregunta: "{$question}"
+EOT;
+
+        $openaiKey = config('services.openai.key');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $openaiKey,
+        ])->post('https://api.openai.com/v1/chat/completions', [
+            'model' => 'gpt-3.5-turbo',
+            'messages' => [
+                ['role' => 'system', 'content' => 'Responde como un experto en clima en español.'],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'temperature' => 0.7,
+        ]);
+
+        if ($response->failed()) {
+            return "La IA no pudo generar una respuesta en este momento.";
+        }
+
+        return $response->json()['choices'][0]['message']['content'] ?? "No se pudo obtener respuesta de la IA.";
     }
 }
